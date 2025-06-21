@@ -1,0 +1,542 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Anime Figure Store - Order Tracker</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #fef7e7 0%, #f4e4bc 50%, #ede0c8 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 40px rgba(139, 121, 94, 0.15);
+            max-width: 700px;
+            width: 100%;
+            text-align: center;
+            border: 2px solid rgba(139, 121, 94, 0.1);
+        }
+
+        .logo {
+            font-size: 2.5rem;
+            font-weight: bold;
+            background: linear-gradient(135deg, #8b795e, #b8956d);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 10px;
+        }
+
+        .subtitle {
+            color: #8b795e;
+            margin-bottom: 40px;
+            font-size: 1.1rem;
+            font-weight: 500;
+        }
+
+        .search-section {
+            margin-bottom: 40px;
+        }
+
+        .input-group {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            align-items: center;
+        }
+
+        .twitter-input {
+            flex: 1;
+            padding: 15px 20px;
+            border: 2px solid #d4c4a8;
+            border-radius: 50px;
+            font-size: 1.1rem;
+            outline: none;
+            transition: all 0.3s ease;
+            background: rgba(255, 255, 255, 0.8);
+        }
+
+        .twitter-input:focus {
+            border-color: #8b795e;
+            box-shadow: 0 0 0 3px rgba(139, 121, 94, 0.1);
+        }
+
+        .search-btn {
+            padding: 15px 30px;
+            background: linear-gradient(135deg, #8b795e, #b8956d);
+            color: white;
+            border: none;
+            border-radius: 50px;
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 600;
+        }
+
+        .search-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(139, 121, 94, 0.3);
+        }
+
+        .search-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .loading {
+            display: none;
+            margin: 20px 0;
+        }
+
+        .spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #8b795e;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .order-result {
+            display: none;
+            background: rgba(254, 247, 231, 0.8);
+            border-radius: 15px;
+            padding: 30px;
+            margin-top: 30px;
+            text-align: left;
+            border: 2px solid rgba(139, 121, 94, 0.2);
+        }
+
+        .order-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid rgba(139, 121, 94, 0.2);
+        }
+
+        .order-title {
+            font-size: 1.8rem;
+            font-weight: bold;
+            color: #8b795e;
+        }
+
+        .status-badge {
+            padding: 8px 15px;
+            border-radius: 20px;
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+
+        .status-pending {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .status-processing {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .status-shipped {
+            background: #d1ecf1;
+            color: #0c5460;
+        }
+
+        .status-delivered {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .status-cancelled {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .order-details {
+            display: grid;
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+
+        .detail-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            padding: 15px;
+            background: rgba(255, 255, 255, 0.6);
+            border-radius: 10px;
+            border: 1px solid rgba(139, 121, 94, 0.1);
+        }
+
+        .detail-item {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .detail-label {
+            font-weight: 600;
+            color: #8b795e;
+            font-size: 0.9rem;
+            margin-bottom: 5px;
+        }
+
+        .detail-value {
+            color: #5d5d5d;
+            font-size: 1rem;
+            font-weight: 500;
+        }
+
+        .payment-status {
+            padding: 4px 10px;
+            border-radius: 15px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+
+        .payment-paid {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .payment-pending {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .payment-failed {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .items-section {
+            margin-top: 25px;
+        }
+
+        .items-header {
+            font-size: 1.3rem;
+            font-weight: bold;
+            color: #8b795e;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .item {
+            background: rgba(255, 255, 255, 0.8);
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 15px;
+            box-shadow: 0 3px 10px rgba(139, 121, 94, 0.1);
+            border: 1px solid rgba(139, 121, 94, 0.1);
+        }
+
+        .item-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .item-name {
+            font-weight: bold;
+            color: #8b795e;
+            font-size: 1.1rem;
+        }
+
+        .item-quantity {
+            background: rgba(139, 121, 94, 0.1);
+            padding: 4px 12px;
+            border-radius: 15px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: #8b795e;
+        }
+
+        .no-order {
+            display: none;
+            background: rgba(248, 215, 218, 0.9);
+            color: #721c24;
+            padding: 25px;
+            border-radius: 15px;
+            margin-top: 20px;
+            border: 2px solid rgba(114, 28, 36, 0.2);
+        }
+
+        .example-handles {
+            margin-top: 20px;
+            padding: 20px;
+            background: rgba(227, 242, 253, 0.8);
+            border-radius: 15px;
+            font-size: 0.9rem;
+            color: #1565c0;
+            border: 2px solid rgba(21, 101, 192, 0.1);
+        }
+
+        .database-editor {
+            margin-top: 30px;
+            padding: 25px;
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 15px;
+            border: 2px solid rgba(139, 121, 94, 0.2);
+        }
+
+        .editor-title {
+            font-size: 1.3rem;
+            font-weight: bold;
+            color: #8b795e;
+            margin-bottom: 15px;
+        }
+
+        .editor-note {
+            background: rgba(255, 243, 205, 0.8);
+            color: #856404;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 15px;
+            font-size: 0.9rem;
+            border: 1px solid rgba(133, 100, 4, 0.2);
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 20px;
+                margin: 10px;
+            }
+            
+            .input-group {
+                flex-direction: column;
+            }
+            
+            .twitter-input, .search-btn {
+                width: 100%;
+            }
+
+            .detail-row {
+                grid-template-columns: 1fr;
+                gap: 10px;
+            }
+
+            .item-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="logo">🎌 Anime Figure Store</div>
+        <div class="subtitle">Track your figure orders with your Twitter handle</div>
+        
+        <div class="search-section">
+            <div class="input-group">
+                <input type="text" class="twitter-input" placeholder="Enter your Twitter handle (e.g., @username)" id="twitterHandle">
+                <button class="search-btn" onclick="searchOrder()">🔍 Find Order</button>
+            </div>
+            
+            <div class="loading" id="loading">
+                <div class="spinner"></div>
+                <p>Searching for your order...</p>
+            </div>
+        </div>
+
+        <div class="order-result" id="orderResult">
+            <div class="order-header">
+                <div class="order-title">📦 Your Order</div>
+                <div class="status-badge" id="statusBadge"></div>
+            </div>
+            
+            <div class="order-details">
+                <div class="detail-row">
+                    <div class="detail-item">
+                        <span class="detail-label">💰 Total Amount</span>
+                        <span class="detail-value" id="totalAmount"></span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">✅ Amount Paid</span>
+                        <span class="detail-value" id="amountPaid"></span>
+                    </div>
+                </div>
+                <div class="detail-row">
+                    <div class="detail-item">
+                        <span class="detail-label">💳 Payment Status</span>
+                        <span class="detail-value" id="paymentStatus"></span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">🚚 Tracking ID</span>
+                        <span class="detail-value" id="trackingId"></span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="items-section">
+                <div class="items-header">
+                    <span>🎯 Ordered Items</span>
+                </div>
+                <div id="itemsList"></div>
+            </div>
+        </div>
+
+        <div class="no-order" id="noOrder">
+            <strong>❌ Order Not Found</strong><br>
+            No order found for this Twitter handle. Please check your handle and try again.
+        </div>
+
+        <div class="example-handles">
+            <strong>💡 Try these sample handles:</strong><br>
+            @otakufan, @figurecollector, @animelover
+        </div>
+
+        <div class="database-editor">
+            <div class="editor-title">🛠️ Database Editor</div>
+            <div class="editor-note">
+                <strong>Note:</strong> To modify the database, edit the <code>orderDatabase</code> object in the JavaScript section below. You can add, remove, or modify Twitter handles and their associated order information.
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // MODIFY THIS DATABASE - Add your customer orders here
+        const orderDatabase = {
+            '@otakufan': {
+                productName: 'Demon Slayer Tanjiro Figure',
+                quantity: 2,
+                currentStatus: 'shipped',
+                totalAmount: '$89.98',
+                amountPaid: '$89.98',
+                paymentStatus: 'paid',
+                trackingId: 'JP-TRACK-789456'
+            },
+            '@figurecollector': {
+                productName: 'Attack on Titan Levi Ackerman Premium Figure',
+                quantity: 1,
+                currentStatus: 'processing',
+                totalAmount: '$149.99',
+                amountPaid: '$50.00',
+                paymentStatus: 'pending',
+                trackingId: 'Not yet assigned'
+            },
+            '@animelover': {
+                productName: 'My Hero Academia Deku Action Figure',
+                quantity: 3,
+                currentStatus: 'delivered',
+                totalAmount: '$119.97',
+                amountPaid: '$119.97',
+                paymentStatus: 'paid',
+                trackingId: 'JP-DELIVERED-555888'
+            }
+        };
+
+        function searchOrder() {
+            const input = document.getElementById('twitterHandle');
+            const loading = document.getElementById('loading');
+            const orderResult = document.getElementById('orderResult');
+            const noOrder = document.getElementById('noOrder');
+            
+            let handle = input.value.trim().toLowerCase();
+            
+            // Add @ if not present
+            if (handle && !handle.startsWith('@')) {
+                handle = '@' + handle;
+            }
+            
+            if (!handle || handle === '@') {
+                alert('Please enter a valid Twitter handle');
+                return;
+            }
+            
+            // Hide previous results
+            orderResult.style.display = 'none';
+            noOrder.style.display = 'none';
+            
+            // Show loading
+            loading.style.display = 'block';
+            
+            // Simulate API call delay
+            setTimeout(() => {
+                loading.style.display = 'none';
+                
+                const order = orderDatabase[handle];
+                
+                if (order) {
+                    displayOrder(order);
+                } else {
+                    noOrder.style.display = 'block';
+                }
+            }, 1500);
+        }
+
+        function displayOrder(order) {
+            const orderResult = document.getElementById('orderResult');
+            
+            // Fill in order details
+            document.getElementById('totalAmount').textContent = order.totalAmount;
+            document.getElementById('amountPaid').textContent = order.amountPaid;
+            document.getElementById('trackingId').textContent = order.trackingId;
+            
+            // Set status badge
+            const statusBadge = document.getElementById('statusBadge');
+            statusBadge.textContent = order.currentStatus.charAt(0).toUpperCase() + order.currentStatus.slice(1);
+            statusBadge.className = 'status-badge status-' + order.currentStatus;
+            
+            // Set payment status with styling
+            const paymentStatusElement = document.getElementById('paymentStatus');
+            const paymentSpan = document.createElement('span');
+            paymentSpan.textContent = order.paymentStatus.charAt(0).toUpperCase() + order.paymentStatus.slice(1);
+            paymentSpan.className = 'payment-status payment-' + order.paymentStatus;
+            paymentStatusElement.innerHTML = '';
+            paymentStatusElement.appendChild(paymentSpan);
+            
+            // Display item
+            const itemsList = document.getElementById('itemsList');
+            itemsList.innerHTML = '';
+            
+            const itemDiv = document.createElement('div');
+            itemDiv.className = 'item';
+            itemDiv.innerHTML = `
+                <div class="item-header">
+                    <div class="item-name">${order.productName}</div>
+                    <div class="item-quantity">Qty: ${order.quantity}</div>
+                </div>
+            `;
+            itemsList.appendChild(itemDiv);
+            
+            orderResult.style.display = 'block';
+        }
+
+        // Allow Enter key to search
+        document.getElementById('twitterHandle').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                searchOrder();
+            }
+        });
+    </script>
+</body>
+</html>
